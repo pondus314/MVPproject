@@ -48,7 +48,7 @@ class ContextSegmentation(BaseDataset):
             transform,
         )
 
-        self._image_dir = self._base_dir / "pascal/VOCdevkit/VOC2012/JPEGImages"
+        self._image_dir = self._base_dir / "VOCdevkit/VOC2010/JPEGImages"
         self._cat_dir = self._base_dir / "full_annotations/trainval"
 
         self.unseen_classes_idx_weak = unseen_classes_idx_weak
@@ -71,11 +71,6 @@ class ContextSegmentation(BaseDataset):
                 osp.join(self._base_dir, "classes-59.txt"), delimiter=":", dtype=None
             )
         ]
-        for main_label, task_label in zip(
-            ("table", "bedclothes", "cloth"), ("diningtable", "bedcloth", "clothes")
-        ):
-            self.labels_59[self.labels_59.index(task_label)] = main_label
-
         self.idx_59_to_idx_469 = {}
         for idx, l in enumerate(self.labels_59):
             if idx > 0:
