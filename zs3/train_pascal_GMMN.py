@@ -554,29 +554,10 @@ def main():
     # keep empty
     parser.add_argument("--unseen_classes_idx", type=int, default=[])
 
+
     ### FOR METRIC COMPUTATION IN ORDER TO GET PERFORMANCES FOR TWO SETS
     seen_classes_idx_metric = np.arange(21)
-
-    # 2 unseen
-    unseen_classes_idx_metric = [10, 14]
-    # 4 unseen
-    # unseen_classes_idx_metric = [10, 14, 1, 18]
-    # 6 unseen
-    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20]
-    # 8 unseen
-    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5]
-    # 10 unseen
-    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5, 9, 16]
-
-    seen_classes_idx_metric = np.delete(
-        seen_classes_idx_metric, unseen_classes_idx_metric
-    ).tolist()
-    parser.add_argument(
-        "--seen_classes_idx_metric", type=int, default=seen_classes_idx_metric
-    )
-    parser.add_argument(
-        "--unseen_classes_idx_metric", type=int, default=unseen_classes_idx_metric
-    )
+    parser.add_argument("--num_unseen", type=int, default=2)
 
     parser.add_argument(
         "--unseen_weight", type=int, default=100, help="number of output channels"
@@ -608,6 +589,27 @@ def main():
     parser.add_argument("--saved_validation_images", type=int, default=10)
 
     args = parser.parse_args()
+    # 2 unseen
+    if args.num_unseen==2:
+        unseen_classes_idx_metric = [10, 14]
+    elif args.num_unseen == 4:
+        #4 unseen
+        unseen_classes_idx_metric = [10, 14, 1, 18]
+    elif args.num_unseen == 6:
+        # 6 unseen
+        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20]
+    elif args.num_unseen == 8:
+        # 8 unseen
+        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5]
+    elif args.num_unseen == 10:
+        # 10 unseen
+        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5, 9, 16]
+
+    seen_classes_idx_metric = np.delete(
+        seen_classes_idx_metric, unseen_classes_idx_metric
+    ).tolist()
+    args.seen_classes_idx_metric=seen_classes_idx_metric
+    args.unseen_classes_idx_metric=unseen_classes_idx_metric
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     if args.cuda:
         try:
