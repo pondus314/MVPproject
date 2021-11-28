@@ -31,6 +31,8 @@ class ContextSegmentation(BaseDataset):
         weak_label=False,
         unseen_classes_idx_weak=[],
         transform=True,
+        withclip = False,
+        encodings_path="embeddings/encodings_context.pt"
     ):
         """
         :param base_dir: path to VOC dataset directory
@@ -46,6 +48,8 @@ class ContextSegmentation(BaseDataset):
             weak_label,
             unseen_classes_idx_weak,
             transform,
+            withclip,
+            encodings_path
         )
 
         self._image_dir = self._base_dir / "VOCdevkit/VOC2010/JPEGImages"
