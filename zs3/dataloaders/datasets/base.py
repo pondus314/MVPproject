@@ -16,6 +16,8 @@ class BaseDataset(data.Dataset):
         weak_label,
         unseen_classes_idx_weak,
         transform,
+        withclip,
+        encodings_path
     ):
         super().__init__()
         self.args = args
@@ -24,9 +26,12 @@ class BaseDataset(data.Dataset):
         self.load_embedding = load_embedding
         self.w2c_size = w2c_size
         self.embeddings = None
-        if self.load_embedding:
+        self.withclip = withclip
+        if self.load_embedding and not self.withclip:
             self.init_embeddings()
         self.images = []
+        if self.withclip:
+            self.encodings = torch.load(encodings_path).cpu().numpy()
         self.weak_label = weak_label
         self.unseen_classes_idx_weak = unseen_classes_idx_weak
         self.transform = transform
@@ -38,15 +43,33 @@ class BaseDataset(data.Dataset):
         raise NotImplementedError
 
     def make_embeddings(self, embed_arr):
-        self.embeddings = torch.nn.Embedding(embed_arr.shape[0], embed_arr.shape[1])
-        self.embeddings.weight.requires_grad = False
-        self.embeddings.weight.data.copy_(torch.from_numpy(embed_arr))
+        if not self.withclip:
+            self.embeddings = torch.nn.Embedding(embed_arr.shape[0], embed_arr.shape[1])
+            self.embeddings.weight.requires_grad = False
+            self.embeddings.weight.data.copy_(torch.from_numpy(embed_arr))
 
     def get_embeddings(self, sample):
         mask = sample["label"] == 255
         sample["label"][mask] = 0
-        lbl_vec = self.embeddings(sample["label"].long()).data
-        lbl_vec = lbl_vec.permute(2, 0, 1)
+        if self.withclip:
+            labels = sample["label"].long()
+            labels = labels.cpu().numpy()
+            lbl_vec = np.zeros((labels.shape[0],labels.shape[1], 512))
+            i = 0
+            for row in labels:
+                j = 0
+                for idx in row:
+                    lbl_vec[i][j] = self.encodings[idx]
+                    j = j + 1
+                i = i + 1
+            lbl_vec = torch.from_numpy(lbl_vec)
+            lbl_vec = lbl_vec.permute(2, 0, 1)
+            sample["label"][mask] = 255
+            sample["label_emb"] = lbl_vec
+        else: 
+            lbl_vec = self.embeddings(sample["label"].long()).data
+            lbl_vec = lbl_vec.permute(2, 0, 1)
+        
         sample["label"][mask] = 255
         sample["label_emb"] = lbl_vec
 

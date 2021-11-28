@@ -25,6 +25,8 @@ class SBDSegmentation(BaseDataset):
         weak_label=False,
         unseen_classes_idx_weak=[],
         transform=True,
+        withclip = False,
+        encodings_path="embeddings/encodings_pascal.pt"
     ):
         """
         :param base_dir: path to VOC dataset directory
@@ -43,6 +45,8 @@ class SBDSegmentation(BaseDataset):
             weak_label,
             unseen_classes_idx_weak,
             transform,
+            withclip,
+            encodings_path
         )
         self._dataset_dir = self._base_dir / "dataset"
         self._image_dir = self._dataset_dir / "img"

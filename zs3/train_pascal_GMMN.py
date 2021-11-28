@@ -218,7 +218,7 @@ class Trainer:
                                 z = z.cuda()
 
                             fake_features_class = self.generator(
-                                embedding_class, z.float()
+                                embedding_class.float(), z.float()
                             )
 
                             if (

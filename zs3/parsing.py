@@ -4,6 +4,9 @@ import argparse
 def get_parser():
     parser = argparse.ArgumentParser(description="PyTorch DeeplabV3Plus Training")
     parser.add_argument(
+        "--withclip", type=bool, default=False
+    )
+    parser.add_argument(
         "--workers", type=int, default=6, metavar="N", help="dataloader threads"
     )
     parser.add_argument(

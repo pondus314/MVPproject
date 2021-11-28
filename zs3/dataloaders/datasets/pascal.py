@@ -27,6 +27,8 @@ class VOCSegmentation(BaseDataset):
         weak_label=False,
         unseen_classes_idx_weak=[],
         transform=True,
+        withclip = False,
+        encodings_path="embeddings/encodings_pascal.pt"
     ):
         """
         :param base_dir: path to VOC dataset directory
@@ -42,6 +44,8 @@ class VOCSegmentation(BaseDataset):
             weak_label,
             unseen_classes_idx_weak,
             transform,
+            withclip,
+            encodings_path
         )
         self._image_dir = self._base_dir / "JPEGImages"
         self._cat_dir = self._base_dir / "SegmentationClass"
