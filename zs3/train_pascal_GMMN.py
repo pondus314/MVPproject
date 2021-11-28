@@ -6,16 +6,16 @@ import torch
 from torch import nn
 from tqdm import tqdm
 
-from dataloaders import make_data_loader
-from modeling.deeplab import DeepLab
-from modeling.gmmn import GMMNnetwork
-from modeling.sync_batchnorm.replicate import patch_replication_callback
-from utils.loss import SegmentationLosses, GMMNLoss
-from utils.lr_scheduler import LR_Scheduler
-from utils.metrics import Evaluator
-from utils.saver import Saver
-from utils.summaries import TensorboardSummary
-from parsing import get_parser
+from zs3.dataloaders import make_data_loader
+from zs3.modeling.deeplab import DeepLab
+from zs3.modeling.gmmn import GMMNnetwork
+from zs3.modeling.sync_batchnorm.replicate import patch_replication_callback
+from zs3.utils.loss import SegmentationLosses, GMMNLoss
+from zs3.utils.lr_scheduler import LR_Scheduler
+from zs3.utils.metrics import Evaluator
+from zs3.utils.saver import Saver
+from zs3.utils.summaries import TensorboardSummary
+from zs3.parsing import get_parser
 
 
 class Trainer:
@@ -103,7 +103,7 @@ class Trainer:
         if args.resume is not None:
             if not os.path.isfile(args.resume):
                 raise RuntimeError(f"=> no checkpoint found at '{args.resume}'")
-            checkpoint = torch.load(args.resume, map_location=torch.device('cpu'))
+            checkpoint = torch.load(args.resume)
             # args.start_epoch = checkpoint['epoch']
 
             if args.random_last_layer:
@@ -152,7 +152,7 @@ class Trainer:
                 self.scheduler(self.optimizer, i, epoch, self.best_pred)
                 # ===================real feature extraction=====================
                 with torch.no_grad():
-                    real_features = self.model.forward_before_class_prediction(
+                    real_features = self.model.module.forward_before_class_prediction(
                         image
                     )
 
@@ -218,7 +218,7 @@ class Trainer:
                                 z = z.cuda()
 
                             fake_features_class = self.generator(
-                                embedding_class, z.float()
+                                embedding_class.float(), z.float()
                             )
 
                             if (
@@ -556,8 +556,21 @@ def main():
 
     ### FOR METRIC COMPUTATION IN ORDER TO GET PERFORMANCES FOR TWO SETS
     seen_classes_idx_metric = np.arange(21)
-    parser.add_argument("--num_unseen", type=int, default=2)
 
+    # 2 unseen
+    unseen_classes_idx_metric = [10, 14]
+    # 4 unseen
+    # unseen_classes_idx_metric = [10, 14, 1, 18]
+    # 6 unseen
+    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20]
+    # 8 unseen
+    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5]
+    # 10 unseen
+    # unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5, 9, 16]
+
+    seen_classes_idx_metric = np.delete(
+        seen_classes_idx_metric, unseen_classes_idx_metric
+    ).tolist()
     parser.add_argument(
         "--seen_classes_idx_metric", type=int, default=seen_classes_idx_metric
     )
@@ -595,26 +608,6 @@ def main():
     parser.add_argument("--saved_validation_images", type=int, default=10)
 
     args = parser.parse_args()
-
-    if args.num_unseen == 4:
-        #4 unseen
-        unseen_classes_idx_metric = [10, 14, 1, 18]
-    elif args.num_unseen == 6:
-        # 6 unseen
-        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20]
-    elif args.num_unseen == 8:
-        # 8 unseen
-        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5]
-    elif args.num_unseen == 10:
-        # 10 unseen
-        unseen_classes_idx_metric = [10, 14, 1, 18, 8, 20, 19, 5, 9, 16]
-    else:
-        #2 unseen
-        unseen_classes_idx_metric = [10, 14]
-
-    seen_classes_idx_metric = np.delete(
-        seen_classes_idx_metric, unseen_classes_idx_metric
-    ).tolist()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     if args.cuda:
         try:
