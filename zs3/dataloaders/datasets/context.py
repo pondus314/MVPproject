@@ -75,6 +75,11 @@ class ContextSegmentation(BaseDataset):
                 osp.join(self._base_dir, "classes-59.txt"), delimiter=":", dtype=None
             )
         ]
+        for main_label, task_label in zip(
+            ("table", "bedclothes", "cloth"), ("diningtable", "bedcloth", "clothes")
+        ):
+            self.labels_59[self.labels_59.index(task_label)] = main_label
+            
         self.idx_59_to_idx_469 = {}
         for idx, l in enumerate(self.labels_59):
             if idx > 0:
